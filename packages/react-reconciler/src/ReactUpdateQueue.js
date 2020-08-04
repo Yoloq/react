@@ -153,6 +153,7 @@ if (__DEV__) {
   };
 }
 
+// 单项链表，存放update，每个update用next连接
 export function createUpdateQueue<State>(baseState: State): UpdateQueue<State> {
   const queue: UpdateQueue<State> = {
     baseState,
@@ -193,12 +194,15 @@ function cloneUpdateQueue<State>(
 export function createUpdate(expirationTime: ExpirationTime): Update<*> {
   return {
     expirationTime: expirationTime,
-
+    
+    // 0更新 1替换 2强制更新 3捕获性的更新
     tag: UpdateState,
     payload: null,
     callback: null,
 
+    // 指向下一个更新
     next: null,
+    // 指向下一个side effect
     nextEffect: null,
   };
 }
@@ -217,6 +221,16 @@ function appendUpdateToQueue<State>(
   }
 }
 
+/**
+ * 
+ * @param {*} fiber 
+ * @param {*} update 
+ * queue1 = fiber.updateQueue
+ * queue2 = fiber.alternate.updateQueue
+ * 两者为null，createUpdateQueue获取初始队列
+ * 两者之一为null，调用cloneUpdateQueue从对方中获取队列
+ * 如果两者都不为空，则将update作为lastUpdate
+ */
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   // Update queues are created lazily.
   const alternate = fiber.alternate;

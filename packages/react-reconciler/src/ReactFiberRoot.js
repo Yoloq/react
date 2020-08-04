@@ -43,13 +43,16 @@ type BaseFiberRootProperties = {|
   // pending level, trading granularity for performance.
   //
   // The earliest and latest priority levels that are suspended from committing.
+  // 最新的和最老的在提交时被挂起
   earliestSuspendedTime: ExpirationTime,
   latestSuspendedTime: ExpirationTime,
   // The earliest and latest priority levels that are not known to be suspended.
+  // 最新的和最老的不确定是否会挂起
   earliestPendingTime: ExpirationTime,
   latestPendingTime: ExpirationTime,
   // The latest priority level that was pinged by a resolved promise and can
   // be retried.
+  // 最新的通过一个promise被resolve并且可以重新尝试的优先级
   latestPingedTime: ExpirationTime,
 
   pingCache:

@@ -492,6 +492,9 @@ setBatchingImplementation(
 
 let warnedAboutHydrateAPI = false;
 
+// 创建ReactRoot
+// 1.清除所有子元素
+// 2.创建new ReactRoot节点
 function legacyCreateRootFromDOMContainer(
   container: DOMContainer,
   forceHydrate: boolean,
@@ -499,6 +502,7 @@ function legacyCreateRootFromDOMContainer(
   const shouldHydrate =
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
+  // 清除所有子元素
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -550,6 +554,8 @@ function legacyRenderSubtreeIntoContainer(
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
+  // 首次进入 root 为 undefined
+  // 创建ReactRoot
   let root: Root = (container._reactRootContainer: any);
   if (!root) {
     // Initial mount
@@ -645,7 +651,7 @@ const ReactDOM: Object = {
     }
     return findHostInstance(componentOrElement);
   },
-
+  // 服务端渲染
   hydrate(element: React$Node, container: DOMContainer, callback: ?Function) {
     invariant(
       isValidContainer(container),
@@ -669,7 +675,7 @@ const ReactDOM: Object = {
       callback,
     );
   },
-
+  // 客户端渲染
   render(
     element: React$Element<any>,
     container: DOMContainer,

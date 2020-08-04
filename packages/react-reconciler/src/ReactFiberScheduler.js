@@ -1849,6 +1849,7 @@ export function warnIfNotCurrentlyBatchingInDev(fiber: Fiber): void {
 }
 
 function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
+  // 找到更新对应的fiberRoot节点
   const root = scheduleWorkToRoot(fiber, expirationTime);
   if (root === null) {
     if (__DEV__) {
@@ -1867,6 +1868,7 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
     return;
   }
 
+  // 存在上一个任务，没有执行完交给浏览器，当前更新的优先级高于上一个任务
   if (
     !isWorking &&
     nextRenderExpirationTime !== NoWork &&
@@ -1877,6 +1879,7 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
     resetStack();
   }
   markPendingPriorityLevel(root, expirationTime);
+  // 不处于render阶段，或者nextRoot !== root，可以请求调度
   if (
     // If we're in the render phase, we don't need to schedule this root
     // for an update, because we'll do it before we exit...
@@ -1888,6 +1891,7 @@ function scheduleWork(fiber: Fiber, expirationTime: ExpirationTime) {
     const rootExpirationTime = root.expirationTime;
     requestWork(root, rootExpirationTime);
   }
+  // 触发无限循环
   if (nestedUpdateCount > NESTED_UPDATE_LIMIT) {
     // Reset this back to zero so subsequent updates don't throw.
     nestedUpdateCount = 0;
@@ -1950,6 +1954,7 @@ function recomputeCurrentRendererTime() {
   currentRendererTime = msToExpirationTime(currentTimeMs);
 }
 
+// 1.如果有一个callback在调度，优先级比当前callback高，直接返回，如果小，取消callback
 function scheduleCallbackWithExpirationTime(
   root: FiberRoot,
   expirationTime: ExpirationTime,
@@ -2084,6 +2089,7 @@ function requestCurrentTime() {
 // requestWork is called by the scheduler whenever a root receives an update.
 // It's up to the renderer to call renderRoot at some point in the future.
 function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
+  // 将root添加到schedule
   addRootToSchedule(root, expirationTime);
   if (isRendering) {
     // Prevent reentrancy. Remaining work will be scheduled at the end of
@@ -2091,8 +2097,12 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
     return;
   }
 
+  // 判断是否需要批量更新
+  // 回调函数会被batchedUpdates函数封装一次
+  // 封装会把isBatchingUpdates置为true
   if (isBatchingUpdates) {
     // Flush work at the end of the batch.
+    // 判断是否不需要批量更新
     if (isUnbatchingUpdates) {
       // ...unless we're inside unbatchedUpdates, in which case we should
       // flush it now.
@@ -2105,8 +2115,13 @@ function requestWork(root: FiberRoot, expirationTime: ExpirationTime) {
 
   // TODO: Get rid of Sync and use current time?
   if (expirationTime === Sync) {
+    // 同步
     performSyncWork();
   } else {
+    // 异步
+    // 实现了requestIdleCallback的polyfill版本
+    // 作用：让浏览器空闲时期一次调用函数，可以让开发者在主事件循环中执行后台或优先级低的任务
+    // 而且不会对动画和用户交互这样延迟敏感的事件产生影响
     scheduleCallbackWithExpirationTime(root, expirationTime);
   }
 }
