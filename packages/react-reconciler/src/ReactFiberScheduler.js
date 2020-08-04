@@ -2363,6 +2363,8 @@ function finishRendering() {
   }
 }
 
+// 执行任务的连个阶段
+// 渲染阶段renderRoot、提交阶段completeRoot
 function performWorkOnRoot(
   root: FiberRoot,
   expirationTime: ExpirationTime,

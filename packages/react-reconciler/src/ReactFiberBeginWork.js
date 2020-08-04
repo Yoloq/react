@@ -1900,7 +1900,7 @@ function beginWork(
   if (current !== null) {
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
-
+    // 判断props和context是否改变
     if (oldProps !== newProps || hasLegacyContextChanged()) {
       // If props or context changed, mark the fiber as having performed work.
       // This may be unset if the props are determined to be equal later (memo).
